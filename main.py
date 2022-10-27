@@ -20,7 +20,8 @@ async def commands_start(message: types.Message):
 
 @cb.dp.message_handler(text=['Поиск по лицевому счету'])
 async def search_by_ls(message: types.Message):
-    await cb.bot.send_message(message.from_user.id, 'Обработка поиска по лицевому счету')
+    await cb.bot.send_message(message.from_user.id, 'Введите номер лицевого счета')
+    print(message.text)
 
 
 @cb.dp.message_handler(text=['Поиск по ФИО, названию'])
