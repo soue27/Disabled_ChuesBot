@@ -23,6 +23,14 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 async def on_startup(_):
     print('Готов к работе! Данные обновлены')
     my_db.open_db()
+
+
+# Админская часть****************************************************************************************************
+@dp.message_handler(commands=['admin'])
+async def commands_admin(message: types.Message):
+    await bot.send_message(message.from_user.id, f'Вы админ, можете добавлять или удалять данные', reply_markup=kb_admin)
+    await message.delete()
+
 # Клиентская часть*************************************************************************************************
 
 
@@ -31,8 +39,6 @@ async def commands_start(message: types.Message) -> None:
     await bot.send_message(message.from_user.id, f'Доброго дня! {message.from_user.first_name} {message.from_user.last_name},'
                                                  f' Давай найдем хулиганов - расхитителей', reply_markup=kb_client)
     await message.delete()
-
-# 'Поиск по лицевому счету'
 
 
 @dp.message_handler(content_types=['text'])
@@ -87,11 +93,7 @@ async def search_data(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-# Админская часть****************************************************************************************************
-@dp.message_handler(commands=['admin'])
-async def commands_admin(message: types.Message):
-    await bot.send_message(message.from_user.id, f'Вы админ, можете добавлять или удалять данные', reply_markup=kb_admin)
-    await message.delete()
+
 
 # Общая часть********************************************************************************************************
 
