@@ -1,17 +1,26 @@
 import sqlite3
+import my_xls
 
 
 global connect, cursor
 
 
-def open_db():
+async def open_db():
     global connect, cursor
     connect = sqlite3.connect('disabled.sqlite3')
     cursor = connect.cursor()
-    if connect:
+    cursor.execute('''SELECT count(name) FROM sqlite_master WHERE type='table' AND name='dis' ''')
+    if cursor.fetchone()[0] == 1:
         print('База данных подключена')
     else:
-        print('Необходимо добавить базу данных')
+        connect.close()
+        spisok = my_xls.migration_xls_sqllite('Ограниченные ЧуЭС.xls')
+        await create_db('disabled.sqlite3', spisok)
+        print('База данных была создана')
+
+
+def close_db():
+    connect.close()
 
 
 async def create_db(base_name: str, spisok: list):
@@ -45,12 +54,15 @@ def search_by_address(adres: str):
     # В случае неполного адреса выдаются выборка подпадающие под условия
     adres = adres.replace(' ', '')
     address = adres.split(',')
-    for i in range(len(address)):   # Цикл проверяет, что в адресе есть символы и заменяет их пустой строкой для работы фильтра
-        if not address[i].isalnum():
-            address[i] = ''
-    results = cursor.execute(f"SELECT * FROM dis WHERE (city like '%{address[0].lower()}%' or point like '%{address[0].lower()}%') "
-                             f"and street like '%{address[1].lower()}%' and house like '%{address[2].lower()}%'").fetchall()
-    return results
+    if len(address) == 3:
+        for i in range(len(address)):   # Цикл проверяет, что в адресе есть символы и заменяет их пустой строкой для работы фильтра
+            if not address[i].isalnum():
+                address[i] = ''
+        results = cursor.execute(f"SELECT * FROM dis WHERE (city like '%{address[0].lower()}%' or point like '%{address[0].lower()}%') "
+                                 f"and street like '%{address[1].lower()}%' and house like '%{address[2].lower()}%'").fetchall()
+        return results
+    else:
+        return None
 
 
 def search_by_tp(tp: str):

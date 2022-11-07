@@ -1,4 +1,5 @@
 import xlrd
+import os
 
 
 def migration_xls_sqllite(filename: str):
@@ -6,7 +7,7 @@ def migration_xls_sqllite(filename: str):
     table = [0, 0, 0, 0, 0, 0, 0]
     stroka = []
     spisok = []
-    book = xlrd.open_workbook(filename)
+    book = xlrd.open_workbook(filename, logfile=open(os.devnull, 'w'))
     sheet = book.sheet_by_index(0)
     for i in range(sheet.ncols):
         if sheet.cell(0, i).value.lower() == 'договор':

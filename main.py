@@ -22,7 +22,7 @@ dp = Dispatcher(bot, storage=MemoryStorage())
 
 async def on_startup(_):
     print('Готов к работе! Данные обновлены')
-    my_db.open_db()
+    await my_db.open_db()
 
 
 # Админская часть****************************************************************************************************
@@ -59,7 +59,7 @@ async def search_by_data(message: types.Message):
         await ProfileStatesGroup.Mydata.set()
     elif message.text == 'Выборка на номеру ТП':
         search_pos = 4
-        await bot.send_message(message.from_user.id, 'Введите номер ТП, можно неполностью', reply_markup=kb_delete())
+        await bot.send_message(message.from_user.id, 'Введите номер ТП в формате "тп №", можно неполностью', reply_markup=kb_delete())
         await ProfileStatesGroup.Mydata.set()
     else:
         await message.reply('Разговаривать будем в другом месте, а теперь за работу!!!')
@@ -67,7 +67,7 @@ async def search_by_data(message: types.Message):
 
 @dp.message_handler(state=ProfileStatesGroup.Mydata)
 async def search_data(message: types.Message, state: FSMContext):
-    stroka = message.text
+    stroka = message.text.lower()
     if search_pos == 1:
         list = my_db.search_by_contract(stroka)
     elif search_pos == 2:
@@ -89,8 +89,13 @@ async def search_data(message: types.Message, state: FSMContext):
             for qw in list:
                 await bot.send_message(message.from_user.id, f'Отключен {qw}', reply_markup=kb_client)
     else:
-        await message.reply('Потребитель с такими данными не отключен', reply_markup=kb_client)
+        await message.reply('Потребитель с такими данными не отключен, либо ошибка в данных запроса, '
+                            'попробуйте повторить!', reply_markup=kb_client)
     await state.finish()
+
+
+async def on_shutdown(_):
+    my_db.close_db()
 
 
 
@@ -98,4 +103,4 @@ async def search_data(message: types.Message, state: FSMContext):
 # Общая часть********************************************************************************************************
 
 if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup, on_shutdown=on_shutdown)
